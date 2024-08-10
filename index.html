@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Student Registration</title>
+<style>
+ 
+body {max-width: 400px;
+    text-align: center;}
+
+button{display: inline;
+    cursor: pointer; }
+    
+button.form {
+    cursor: pointer;
+    margin: 10px 0;
+    padding: 10px 20px;
+    border: 2px solid black;
+}
+
+.delete-row {
+     color: red;
+   }
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    border: 1px solid black;
+    padding: 8px;
+    text-align: center;
+}
+
+table th {
+    background-color: #333;
+    color: white;
+}
+
+table tr:nth-child(even) {
+    background-color: #f4f4f4;
+}
+
+
+input, select {
+    max-width: 400px;
+    width: 95%;
+    text-align: left;
+    padding-left: 10px;
+    display: block;
+    align-content: center;
+    height: 30px;
+}  
+
+input:focus{
+    outline: green;
+    color: blue;
+    border: 1px solid green;
+}
+
+select {float: right;
+    }
+
+label {font-weight: bold;
+    padding: 5px;}
+</style>
+</head>
+<body>
+
+<h2>Student Registration</h2>
+
+<div style="display: block; text-align: center;">
+<label for="surname">Surname:</label>
+<input type="text" id="surname" placeholder="Surname">
+<label for="firstname">First Name:</label>
+<input type="text" id="firstname" placeholder="First Name">
+
+<label for="regnumber">Registration Number:</label>
+<input type="text" id="regnumber" placeholder="Registration Number">
+<br>
+
+<select id="sex">
+  <option value="">Select Gender</option>
+  <option value="M">Male</option>
+  <option value="F">Female</option>
+</select>
+</div>
+<br>
+</div>
+
+<div class="error" style="display: none; color: red;">
+    Please fill out all fields.
+</div>
+
+<button onclick="addStudent()" class="form" style="float: left;">Add Student</button>
+<button onclick="generateExcel()" class="form" style="float: right;">Download Excel</button>
+
+<table id="studentTable" border="1">
+  <thead>
+    <tr>
+      <th>S/NAME</th>
+      <th>F/Name</th>
+      <th>Sex</th>
+      <th>Reg #</th>
+      <th>A</th>
+    </tr>
+  </thead>
+  <tbody id="studentTableBody">
+    <!-- Student data will be populated here -->
+  </tbody>
+</table>
+<button onclick="deleteAll()" class="form" style="float: right; color: red;">Delete All</button>
+
+<script>
+function addStudent() {
+  const surname = document.getElementById('surname').value;
+  const firstname = document.getElementById('firstname').value;
+  const sex = document.getElementById('sex').value;
+  const regnumber = document.getElementById('regnumber').value;
+
+  if (!surname || !firstname || !sex || !regnumber) {
+        var errorDiv = document.querySelector('.error');
+        errorDiv.style.display = 'block';
+        setTimeout(function() {
+            errorDiv.style.display = 'none';
+        }, 5000); // 5 seconds
+        return;
+    }
+ 
+  
+
+  let students = JSON.parse(localStorage.getItem('students')) || [];
+  students.push({ surname, firstname, sex, regnumber });
+  localStorage.setItem('students', JSON.stringify(students));
+
+ document.getElementById('surname').value = '';
+  document.getElementById('firstname').value = '';
+  document.getElementById('regnumber').value = '';
+
+
+  displayStudents();
+}
+
+function displayStudents() {
+  const studentTableBody = document.getElementById('studentTableBody');
+  studentTableBody.innerHTML = '';
+
+  const students = JSON.parse(localStorage.getItem('students')) || [];
+  students.forEach((student, index) => {
+    const row = studentTableBody.insertRow(-1);
+    row.insertCell(0).textContent = student.surname;
+    row.insertCell(1).textContent = student.firstname;
+    row.insertCell(2).textContent = student.sex;
+    row.insertCell(3).textContent = student.regnumber;
+    
+    const actionsCell = row.insertCell(4);
+    const editButton = document.createElement('button');
+    editButton.textContent = 'E';
+    actionsCell.appendChild(editButton);
+    
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = 'D';
+    deleteButton.classList.add('delete-row');
+    deleteButton.addEventListener('click', () => deleteStudent(index));
+    actionsCell.appendChild(deleteButton);
+  });
+}
+
+function deleteStudent(index) {
+  let students = JSON.parse(localStorage.getItem('students')) || [];
+  students.splice(index, 1);
+  localStorage.setItem('students', JSON.stringify(students));
+
+  displayStudents();
+}
+
+
+
+function deleteAll() {
+  if (confirm("Are you sure you want to delete all students?")) {
+    localStorage.removeItem('students');
+    displayStudents();
+  }
+}
+
+
+
+
+function generateExcel() {
+  const students = JSON.parse(localStorage.getItem('students')) || [];
+
+  const csvContent = 'data:text/csv;charset=utf-8,' +
+    students.map(student => Object.values(student).join(',')).join('\n');
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement('a');
+  link.setAttribute('href', encodedUri);
+  link.setAttribute('download', 'Student Details');
+  document.body.appendChild(link);
+  link.click();
+}
+
+// Display existing students on load
+displayStudents();
+</script>
+
+</body>
+</html>
+
+
